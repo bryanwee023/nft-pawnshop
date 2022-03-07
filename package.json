@@ -1,0 +1,10 @@
+{
+    "name": "nft-pawnshop",
+    "version": "0.1.0",
+    "author": "Bryan Wee",
+    "license": "UNLICENSED",
+    "scripts": {
+        "build": "npm run build:pawnshop",
+        "build:pawnshop": "cd pawnshop-contract && ./build.sh && cd .."
+    }
+}
