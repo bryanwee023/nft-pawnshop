@@ -20,7 +20,7 @@ mod test_utils;
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Contract {
-    pub pawns: LookupMap<PawnId, ConfirmedPawn>,
+    pub confirmed_pawns: LookupMap<PawnId, ConfirmedPawn>,
     pub offered_pawns: LookupMap<PawnId, Pawn>,
     pub by_broker_id: LookupMap<AccountId, UnorderedSet<PawnId>>,
     pub by_borrower_id: LookupMap<AccountId, UnorderedSet<PawnId>>,
@@ -33,7 +33,7 @@ impl Contract {
     #[init]
     pub fn new() -> Self {
         let this = Self {
-            pawns: LookupMap::new(StorageKey::Pawns),
+            confirmed_pawns: LookupMap::new(StorageKey::Pawns),
             offered_pawns: LookupMap::new(StorageKey::OfferedPawns),
             by_broker_id: LookupMap::new(StorageKey::ByBrokerId),
             by_borrower_id: LookupMap::new(StorageKey::ByBorrowerId),
@@ -76,7 +76,7 @@ impl Contract {
     }
 
     pub fn confirmed_pawn(&self, pawn_id: PawnId) -> Option<ConfirmedPawn>  {
-        self.pawns.get(&pawn_id)
+        self.confirmed_pawns.get(&pawn_id)
     }
 }
 

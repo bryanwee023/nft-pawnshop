@@ -24,3 +24,32 @@ impl NonFungibleTokenApprovalReceiver for Contract {
         PromiseOrValue::Value(String::from("Transfer request submitted"))
     }
 }
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests {
+    use near_sdk::test_utils::VMContextBuilder;
+    use near_sdk::MockedBlockchain;
+    use near_sdk::testing_env;
+    use near_contract_standards::non_fungible_token::approval::NonFungibleTokenApprovalReceiver;
+
+    use crate::Contract;
+    use crate::test_utils::*;
+    use super::*;
+
+    #[test]
+    fn on_approve_success() {
+        let context = VMContextBuilder::new()
+            .current_account_id(validate(pawnshop_id()))
+            .signer_account_id(validate(alice()))
+            .predecessor_account_id(validate(nft_contract()))
+            .build();
+        testing_env!(context);
+
+        let mut contract = Contract::new();
+        contract.nft_on_approve(token_id(), alice(), 11, String::new());
+
+        let pawn_id = Pawn::pawn_id(&nft_contract(), &token_id());
+        let expected_pending = contract.pending_transfer(pawn_id).unwrap();
+        assert_eq!(expected_pending, (alice(), 11));
+    }
+}

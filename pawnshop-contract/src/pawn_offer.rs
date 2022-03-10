@@ -81,7 +81,7 @@ impl Contract {
             },
             // Case 2: Withdrawing a transferred but unprocessed nft
             Option::None => {
-                assert!(self.pawns.get(&pawn_id).is_none(), "Cannot revoke an already pawned item");
+                assert!(self.confirmed_pawns.get(&pawn_id).is_none(), "Cannot revoke an already pawned item");
                 self.pending_transfers.get(&pawn_id).unwrap().0 
                 // TODO: Remove pawn_id from pending transfers once transfer confirmed.
                 // But what if nft_transfer fails?
@@ -101,7 +101,7 @@ impl Contract {
     }
 
     #[payable]
-    pub fn accept_pawn(&mut self, pawn_id: PawnId) {
+    pub fn accept_pawn(&mut self, pawn_id: PawnId) -> ConfirmedPawn {
         // Remove offered pawn. If not found, panic.
         let pawn = self.offered_pawns.remove(&pawn_id).expect("Pawn not found");
 
@@ -114,13 +114,15 @@ impl Contract {
         let loan_value = pawn.get_loan_value().0;
 
         // Move pawn into map of confirmed pawns
-        self.pawns.insert(
+        let confirmed_pawn = ConfirmedPawn {
+            pawn,
+            broker_id: broker_id.clone(),
+            start_time: env::block_timestamp()
+        };
+
+        self.confirmed_pawns.insert(
             &pawn_id, 
-            &ConfirmedPawn {
-                pawn,
-                broker_id: broker_id.clone(),
-                start_time: env::block_timestamp()
-            }
+            &confirmed_pawn
         );
 
         // Update broker's set of pawned tokens
@@ -138,8 +140,11 @@ impl Contract {
 
         assert!(env::attached_deposit() >= loan_value + storage_cost, "Insufficient deposit to facilitate loan and storage");
 
-        Promise::new(borrower_id)
-            .transfer(env::attached_deposit() - storage_cost);
+        // Transfer loan
+        Promise::new(borrower_id).transfer(loan_value);
+
+        //confirmed_pawn
+        confirmed_pawn
     }
 
 }

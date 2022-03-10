@@ -5,6 +5,10 @@ use near_sdk::json_types::ValidAccountId;
 
 use crate::*;
 use crate::external::*;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests;
+
 //TODO: Figure out this value
 const GAS_FOR_NFT_TRANSFER: Gas = 1000000;
 
@@ -14,12 +18,12 @@ impl Contract {
     #[payable]
     pub fn repay_loan(&mut self, pawn_id: PawnId) {
         // Remove offered pawn. If not found, panic.
-        let confirmed_pawn = self.pawns.remove(&pawn_id).expect("Pawn not found");
+        let confirmed_pawn = self.confirmed_pawns.remove(&pawn_id).expect("Pawn not found");
 
         assert_eq!(env::signer_account_id(), *confirmed_pawn.get_borrower(), "Signer not nft owner");
         
         let payment_amount = confirmed_pawn.get_payment_amount();
-        assert!(env::attached_deposit() >= payment_amount.0);
+        assert!(env::attached_deposit() >= payment_amount.0, "Insufficient deposit to pay off loan");
 
         let borrower_id = ValidAccountId::try_from(env::signer_account_id()).expect("Invalid signer");
 
@@ -40,9 +44,8 @@ impl Contract {
 
     pub fn liquidate_pawn(&mut self, pawn_id: PawnId) {
         // Remove offered pawn. If not found, panic.
-        let confirmed_pawn = self.pawns.remove(&pawn_id).expect("Pawn not found");
+        let confirmed_pawn = self.confirmed_pawns.remove(&pawn_id).expect("Pawn not found");
 
-        assert_eq!(env::signer_account_id(), confirmed_pawn.broker_id, "Signer not pawnbroker");
         assert!(env::block_timestamp() > confirmed_pawn.get_deadline(), "Pawn redemption period not over");
 
         let broker_id = ValidAccountId::try_from(env::signer_account_id()).expect("Invalid signer");

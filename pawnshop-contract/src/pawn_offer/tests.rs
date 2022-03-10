@@ -1,15 +1,17 @@
-use std::convert::TryInto;
-
+/*
+    Mainly focused on testing brokers accepting pawns.
+    Tests for offering pawn can be found in simulation tests.
+*/
 use super::*;
 use crate::test_utils::*;
 
-use near_sdk::env::storage_byte_cost;
 use near_sdk::json_types::ValidAccountId;
 use near_sdk::test_utils::{accounts, VMContextBuilder};
 use near_sdk::{MockedBlockchain, Balance};
 use near_sdk::testing_env;
 
-// Helper Functions
+const DEPOSIT_FOR_STORAGE: u128 = 5_000_000_000_000_000_000_000; //0.005 Near
+
 fn get_context(predecessor_account_id: AccountId, deposit: Balance) -> VMContextBuilder {
     let predecessor_account_id: ValidAccountId = predecessor_account_id.try_into().unwrap();
 
@@ -24,141 +26,71 @@ fn get_context(predecessor_account_id: AccountId, deposit: Balance) -> VMContext
     context
 }
 
-fn get_contract(has_storage_deposit: bool) -> Contract {
-
+fn get_contract_with_offer() -> Contract {
     let mut contract = Contract::new();
 
-    if has_storage_deposit { 
-        let storage_deposit = 300 * env::STORAGE_PRICE_PER_BYTE;
-        let context = get_context(alice(), storage_deposit);
-        testing_env!(context.build());
-
-        contract.deposit_for_storage(); 
-    }
-
+    contract.offered_pawns.insert(
+        &pawn_id(),
+        &default_pawn()
+    );
     contract
 }
 
-fn get_contract_with_offer() -> Contract {
-    let mut contract = get_contract(true);
-
-    contract.offer_pawn(alice(), nft_contract(), token_id(), default_loan());
-
-    contract
-}
-
-
-// Tests 
-#[test]
-fn test_offer_pawn_successful() {
-    let mut contract = get_contract(true);
-
-    contract.offer_pawn(
-    alice().to_string(), nft_contract(), 
-    token_id(), default_loan()
-    );
-
-    // Test whether pawn is listed
-    assert!(
-        contract.offered_pawns.get(&pawn_id())
-            .map(|x| x == default_pawn())
-            .unwrap_or(false),
-        "Offered pawn not found"
-    );
-    // Test whether pawn is mapped to the owner
-    assert!(
-        contract.by_borrower_id.get(&alice())
-            .map(|x| x.contains(&pawn_id()))
-            .unwrap_or(false),
-        "Offered pawn not mapped to borrower"
-    );
-}
-
-#[test]
-fn test_offer_pawn_unpaid_storage_fail() {
-    let mut contract = get_contract(false);
-
-    let context = get_context(alice(), 0);
-    testing_env!(context.build());
-    
-    assert!(
-        !contract.offer_pawn(
-            alice(), nft_contract(), 
-            token_id(), default_loan()
-        )
-    );
-}
-
-// TODO: Move to Simulation tests, need to test if borrower received loan.
 #[test]
 fn test_accept_pawn_successful() {
+    let context = get_context(
+            bob(), 
+            default_loan().loan_value.0 + DEPOSIT_FOR_STORAGE
+        ).build();
+    testing_env!(context);
+
     let mut contract = get_contract_with_offer();
 
-    let storage_cost = 500 * storage_byte_cost();
+    let confirmed_pawn = contract.accept_pawn(pawn_id());
 
-    let context = get_context(bob(), loan_value().0 + storage_cost);
-    testing_env!(context.build());
-
-    contract.accept_pawn(pawn_id());
-
-    // Ensure pawn is no longer listed
-    assert!(
-        contract.offered_pawns.get(&pawn_id())
-            .map(|x| x == default_pawn())
-            .is_none(),
-        "Pawn still being listed"
-    );
-
-    contract.pawns.get(&pawn_id())
-        .map(|x| println!("{}\n", x.broker_id));
-    
-
-    // Test whether pawn is confirmed
-    assert!(
-        contract.pawns.get(&pawn_id())
-            .map(|x| x == default_confirmed_pawn())
-            .unwrap_or(false),
-        "Confirmed pawn not found"
-    );
-
-    // Test whether pawn is mapped to the owner
-    assert!(
-        contract.by_borrower_id.get(&bob())
-            .map(|x| x.contains(&pawn_id()))
-            .unwrap_or(false),
-        "Confirmed pawn not mapped to broker"
-    );
-}
-
-#[test]
-#[should_panic(expected = "Pawn not found")]
-fn test_accept_inexistent_pawn_fail() {
-    let mut contract = get_contract(true);
-
-    let context = get_context(bob(), loan_value().0);
-    testing_env!(context.build());
-
-    contract.accept_pawn(String::from("invalid_id"));
-}
-
-#[test]
-#[should_panic(expected = "Insufficient deposit to facilitate loan")]
-fn test_accept_pawn_insufficient_deposit_fail() {
-    let mut contract = get_contract_with_offer();
-
-    let context = get_context(bob(), loan_value().0 / 2);
-    testing_env!(context.build());
-
-    contract.accept_pawn(pawn_id());
+    assert!(default_confirmed_pawn() == confirmed_pawn);
+    assert!(contract.confirmed_pawn(pawn_id()).unwrap() == confirmed_pawn);
 }
 
 #[test]
 #[should_panic(expected = "Insufficient deposit to facilitate loan and storage")]
 fn test_accept_pawn_unpaid_storage_fail() {
+    let context = get_context(
+            bob(), 
+            default_loan().loan_value.0
+        ).build();
+    testing_env!(context);
+
     let mut contract = get_contract_with_offer();
 
-    let context = get_context(bob(), loan_value().0);
-    testing_env!(context.build());
+    let _ = contract.accept_pawn(pawn_id());
+}
 
-    contract.accept_pawn(pawn_id());
+#[test]
+#[should_panic(expected = "Pawn not found")]
+fn test_accept_inexistent_pawn_fail() {
+    let context = get_context(
+            bob(), 
+            default_loan().loan_value.0 + DEPOSIT_FOR_STORAGE
+        ).build();
+    testing_env!(context);
+
+    let mut contract = Contract::new();
+
+    let _ = contract.accept_pawn(pawn_id());
+}
+
+#[test]
+#[should_panic(expected = "Pawn not found")]
+fn test_accept_pawn_twice_fail() {
+    let context = get_context(
+            bob(), 
+            default_loan().loan_value.0 + DEPOSIT_FOR_STORAGE
+        ).build();
+    testing_env!(context);
+
+    let mut contract = get_contract_with_offer();
+
+    let _ = contract.accept_pawn(pawn_id());
+    let _ = contract.accept_pawn(pawn_id());
 }
