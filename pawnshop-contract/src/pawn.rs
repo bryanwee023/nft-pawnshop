@@ -28,6 +28,10 @@ impl Pawn {
     pub fn get_pawn_id(&self) -> PawnId {
         format!("{}.{}", self.nft_contract_id, self.token_id)
     }
+
+    pub fn pawn_id(nft_contract_id: &AccountId, token_id: &TokenId) -> PawnId {
+        format!("{}.{}", nft_contract_id, token_id)
+    }
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, PartialEq)]

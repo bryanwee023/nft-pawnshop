@@ -27,5 +27,5 @@ pub enum StorageKey {
     ByBrokerIdInner { account_id_hash: CryptoHash },
     ByBorrowerId,
     ByBorrowerIdInner { account_id_hash: CryptoHash },
-    ByStorageHolderId
+    ByUserId
 }

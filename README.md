@@ -7,20 +7,17 @@ A [Near smart contract] written in [Rust] for an app that uses NFTs to facilitat
 Prerequisites
 ===========
 1. Make sure you've installed [Node.js] ≥ 12
-2. Install [Rust]
+2. Install [Rust] and [cargo]
 3. Install [near-cli] globally. This will be useful for deployment and manual testing.
 
    ```   
     yarn install --global near-cli
    ```
+
 Quick Start
 ===========
 
 ## Step 1. Set up
-
-Log into the near account you intend to deploy the contract on.
-
-    near login
 
 Set up your account id as a environment variable. This way, it's easier to copy and paste the subsequent command.
 
@@ -28,11 +25,10 @@ Set up your account id as a environment variable. This way, it's easier to copy 
 
 ## Step 2. Deploy and initialise the contract
 
-    yarn build
-    near deploy --wasmFile out/main.wasm --accountId $PAWNSHOP_ID
-    near call $PAWNSHOP_ID new --account_id $PAWNSHOP_ID
+    yarn dev-deploy $PAWNSHOP_ID
 
-The block builds the contract, deploys it onto the testnet, and then initialises it.
+Running this command will prompt you to log into the NEAR account you intend to deploy the contract onto.
+The command then builds the contract, deploys and initialises it.
 
 ## Step 3. Interact with the contract
 
@@ -41,31 +37,40 @@ First, let's try to list an nft as a collateral for a loan. Log into a separate 
     near login
     export USER_ID="YOUR_OTHER_ACCOUNT_NAME"
     
-Before any user can list an nft as a pawn, they will have to pay for storage. To do so:
+To pawn an nft, the user must approve the contract in transferring the nft to be pawned. 
 
-    near call $PAWNSHOP_ID deposit_for_storage --deposit 0.01   --accountId $USER_ID
+Then, the user can list the nft for pawning as such.
 
-Now, to initiate a pawn offer, let's transfer an NFT to the contract with the following message.
+    near call $PAWNSHOP_ID offer_pawn '{
+        "nft_contract_id": "'$NFT_CONTRACT'", 
+        "token_id": "'Token4'", 
+        "loan_conditions": {
+            "loan_value":"1000000000000000000000000", 
+            "interest":10, 
+            "duration":86400000000000 
+        }
+    }' --deposit 0.01 --accountId $USER_ID --gas=300000000000000
 
-    "
-       {
-          "loan_value": "1000000000000000000000000",
-          "interest": 10,
-          "duration": 86400000000000
-       }
-    "
+This lists our nft as a collateral for a 1 day loan of 1 near, with 10% interest rate.
    
-This should initiate an offer requesting a 1 day loan of 1 Near, at a 10% interest rate.
+**Note**: To mint NFTs for manual testing purposes, we can make use of the __nft-contract/nft-scripts__ subfolder.
 
-To mint NFTs for manual testing purposes, we can make use of the __nft-contract__ subfolder. To transfer, run the following:
+To learn how to accept pawn offers, repay loans, and collect collateral, read the documentation (TBD)
      
-     
-     
+Troubleshooting
+===========
+
+On Mac M1, cross-compilation is not supported on Apple ARM yet. This might cause problems when trying to run tests. Please see this [issue](https://github.com/near/nearcore/issues/3803). To circumvent this, do switch to a x86-64 toolchain.
+
+Install the toolchain if you've not done so. 
+     rustup toolchain install stable-x86_64-apple-darwin
+
+Set the toolchain as the default. 
+     rustup default stable-x86_64-apple-darwin
+
 
   [Near smart contract]: https://docs.near.org/docs/develop/contracts/overview
   [Node.js]: https://nodejs.org/en/download/package-manager/
   [Rust]: https://www.rust-lang.org/
-  [create-near-app]: https://github.com/near/create-near-app
-  [correct target]: https://github.com/near/near-sdk-rs#pre-requisites
   [cargo]: https://doc.rust-lang.org/book/ch01-03-hello-cargo.html
 

@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
-
-set -o nounset
 . ./nft-scripts/config.sh
 
-near call example-nft.testnet nft_transfer_call "{
+near call $NFT_CONTRACT_ID nft_transfer_call "{
         \"receiver_id\": \"$RECEIVER_ID\", 
         \"token_id\": \"$TOKEN_ID\", 
         \"approval_id\": 0,

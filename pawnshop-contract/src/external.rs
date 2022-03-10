@@ -6,7 +6,7 @@ use crate::*;
 /// external contract calls
 
 #[ext_contract(ext_nft)]
-trait ExtContract {
+trait NftCore {
     fn nft_transfer(
         &mut self,
         receiver_id: ValidAccountId,
@@ -14,4 +14,16 @@ trait ExtContract {
         approval_id: Option<u64>,
         memo: Option<String>,
     );
+}
+
+#[ext_contract(ext_self)]
+trait NftTransferResolver {
+    fn resolve_transfer(
+        &mut self, 
+        owner_id: AccountId,
+        nft_contract_id: AccountId, 
+        token_id: TokenId, 
+        loan_conditions: LoanConditions,
+        deposit: Balance
+    ) -> Pawn;
 }
