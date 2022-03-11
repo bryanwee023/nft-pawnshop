@@ -4,8 +4,13 @@
     "author": "Bryan Wee",
     "license": "UNLICENSED",
     "scripts": {
-        "build": "./build.sh",
-        "deploy": "npm run build && near deploy --wasmFile out/main.wasm --accountId $PAWNSHOP_ID && near call $PAWNSHOP_ID new --account_id $PAWNSHOP_ID",
-        "dev-deploy": "npm run build && near deploy --wasmFile out/main.wasm --accountId $PAWNSHOP_ID && near call $PAWNSHOP_ID new --account_id $PAWNSHOP_ID"
+        "build": "./scripts/build.sh",
+        "deploy": "npm run build && ./scripts/deploy.sh",
+        "dev-deploy": "npm run build && ./scripts/deploy.sh --dev",
+
+        "offer-pawn": "./scripts/offer_pawn.sh",
+        "withdraw-offer": "./scripts/withdraw_offer.sh",
+        "accept-pawn": "./scripts/accept_pawn.sh",
+        "repay-loan": "./scripts/repay_loan.sh"
     }
 }
