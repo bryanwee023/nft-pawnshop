@@ -44,6 +44,7 @@ pub struct ConfirmedPawn {
 
 impl ConfirmedPawn {
     pub fn get_borrower(&self) -> &AccountId { &self.pawn.owner_id }
+    pub fn get_broker(&self) -> &AccountId { &self.broker_id }
     pub fn get_nft_id(&self) -> &AccountId { &self.pawn.nft_contract_id }
     pub fn get_token_id(&self) -> &TokenId { &self.pawn.token_id }
     pub fn get_pawn_id(&self) -> PawnId { self.pawn.get_pawn_id() }

@@ -1,3 +1,7 @@
+/*
+Unit tests here only tests that contract correctly allows a repayment or liquidation.
+To test the desired results are achieved (nft and tokens properly transferred)
+*/
 use super::*;
 use crate::test_utils::*;
 
