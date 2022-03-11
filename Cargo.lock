@@ -1792,13 +1792,6 @@ dependencies = [
 [[package]]
 name = "nft-pawnshop-wrapper"
 version = "0.1.0"
-dependencies = [
- "near-contract-standards",
- "near-sdk",
- "near-sdk-sim",
- "nft-pawnshop",
- "non-fungible-token",
-]
 
 [[package]]
 name = "nix"
