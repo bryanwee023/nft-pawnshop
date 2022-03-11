@@ -5,10 +5,6 @@ use near_sdk::test_utils::accounts;
 use crate::pawn::{Pawn, ConfirmedPawn, LoanConditions};
 use crate::utils::*;
 
-pub(crate) fn validate(account_id: AccountId) -> ValidAccountId {
-    account_id.try_into().unwrap()
-}
-
 pub(crate) fn alice() -> AccountId { accounts(0).to_string() }
 pub(crate) fn bob() -> AccountId { accounts(1).to_string() }
 pub(crate) fn pawnshop_id() -> AccountId { "my_pawnshop".to_string() }

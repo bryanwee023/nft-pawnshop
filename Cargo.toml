@@ -1,11 +1,8 @@
 [package]
-name = "nft-pawnshop"
+name = "nft-pawnshop-wrapper"
 version = "0.1.0"
 authors = ["Bryan Wee"]
 edition = "2021"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 near-sdk = "3.1.0"
@@ -13,6 +10,10 @@ near-contract-standards = "3.1.1"
 
 [dev-dependencies]
 near-sdk-sim = "3.2.0"
+
+# remember to include a line for each contract
+nft-pawnshop = { path = "./nft-pawnshop" }
+non-fungible-token = { path = "./non-fungible-token" }
 
 [profile.release]
 codegen-units = 1
@@ -23,3 +24,10 @@ debug = false
 panic = "abort"
 # Opt into extra safety checks on arithmetic operations https://stackoverflow.com/a/64136471/249801
 overflow-checks = true
+
+[workspace]
+# remember to include a member for each contract
+members = [
+  "non-fungible-token",
+  "nft-pawnshop",
+]
