@@ -1790,10 +1790,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nft-pawnshop-wrapper"
-version = "0.1.0"
-
-[[package]]
 name = "nix"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1815,14 +1811,6 @@ dependencies = [
  "memchr",
  "minimal-lexical",
  "version_check",
-]
-
-[[package]]
-name = "non-fungible-token"
-version = "1.1.0"
-dependencies = [
- "near-contract-standards",
- "near-sdk",
 ]
 
 [[package]]
