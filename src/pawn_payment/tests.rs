@@ -45,7 +45,7 @@ fn test_repay_pawn_successful() {
 
     let mut contract = get_contract_with_confirmed_pawn();
 
-    contract.repay_loan(pawn_id());
+    contract.repay_loan(nft_contract(), token_id());
 
     assert!(contract.confirmed_pawn(pawn_id()).is_none());
 }
@@ -62,7 +62,7 @@ fn test_repay_pawn_insufficient_deposit_fail() {
 
     let mut contract = get_contract_with_confirmed_pawn();
 
-    contract.repay_loan(pawn_id());
+    contract.repay_loan(nft_contract(), token_id());
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn test_liquidate_pawn_successful() {
 
     let mut contract = get_contract_with_confirmed_pawn();
 
-    contract.liquidate_pawn(pawn_id());
+    contract.liquidate_pawn(nft_contract(), token_id());
 
     assert!(contract.confirmed_pawn(pawn_id()).is_none());
 }
@@ -93,7 +93,7 @@ fn test_liquidate_pawn_before_due_date_fail() {
 
     let mut contract = get_contract_with_confirmed_pawn();
 
-    contract.liquidate_pawn(pawn_id());
+    contract.liquidate_pawn(nft_contract(), token_id());
 
     assert!(contract.confirmed_pawn(pawn_id()).is_none());
 }

@@ -1,13 +1,13 @@
 use near_sdk::{Gas, Balance, PromiseResult};
 
 use crate::*;
-use crate::external::{ext_nft, ext_self};
+use crate::external::*;
 
 //TODO: Figure out this value
 const GAS_FOR_TRANSFERRING_TOKEN: Gas = 80_000_000_000_000;
 const GAS_FOR_RESOLVING_TRANSFER: Gas = 40_000_000_000_000;
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, PartialEq)]
 #[serde(crate = "near_sdk::serde")]
 pub enum PendingTransfer {
     Outgoing { to: AccountId },

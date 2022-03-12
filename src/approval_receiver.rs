@@ -54,6 +54,8 @@ mod tests {
 
         let pawn_id = Pawn::pawn_id(&nft_contract(), &token_id());
         let expected_pending = contract.pending_transfer(pawn_id).unwrap();
-        assert_eq!(expected_pending, (alice(), 11));
+        assert!(
+            expected_pending == PendingTransfer::Incoming{ from: alice(), approval_id: 11 }
+        );
     }
 }

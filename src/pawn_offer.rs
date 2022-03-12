@@ -1,7 +1,7 @@
 use near_sdk::{Promise, Gas, PromiseOrValue};
 
 use crate::*;
-use crate::external::{ext_nft, ext_self};
+use crate::external::*;
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod tests;
