@@ -1,5 +1,5 @@
 use near_sdk::AccountId;
-use near_sdk::json_types::{U128, ValidAccountId};
+use near_sdk::json_types::U128;
 use near_sdk::test_utils::accounts;
 
 use crate::pawn::{Pawn, ConfirmedPawn, LoanConditions};

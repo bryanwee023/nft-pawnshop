@@ -10,11 +10,12 @@ pub type InterestInPercent = u16;
 pub type PawnId = String;
 pub type Time = u64;
 
+// Converts AccountId into ValidAccountId
 pub(crate) fn validate(account_id: AccountId) -> ValidAccountId {
     account_id.try_into().unwrap()
 }
 
-//used to generate a unique prefix in our storage collections (this is to avoid data collisions)
+// Used to generate a unique prefix in our storage collections (this is to avoid data collisions)
 pub(crate) fn hash_account_id(account_id: &AccountId) -> CryptoHash {
     //get the default hash
     let mut hash = CryptoHash::default();

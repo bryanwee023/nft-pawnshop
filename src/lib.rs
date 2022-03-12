@@ -22,11 +22,13 @@ mod test_utils;
 #[near_bindgen]
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 pub struct Contract {
-    pub confirmed_pawns: LookupMap<PawnId, ConfirmedPawn>,
     pub offered_pawns: LookupMap<PawnId, Pawn>,
+    pub confirmed_pawns: LookupMap<PawnId, ConfirmedPawn>,
     pub by_broker_id: LookupMap<AccountId, UnorderedSet<PawnId>>,
     pub by_borrower_id: LookupMap<AccountId, UnorderedSet<PawnId>>,
-    pub pending_transfers: LookupMap<AccountId, PendingTransfer>
+
+    // Tracks all unresolved incoming and outgoing transfers
+    pub pending_transfers: LookupMap<PawnId, PendingTransfer>
 }
 
 #[near_bindgen]
@@ -45,10 +47,12 @@ impl Contract {
         this
     }
 
+    // Get pending transfer (if any) with the given pawn id
     pub fn pending_transfer(&self, pawn_id: PawnId) -> Option<PendingTransfer>  {
         self.pending_transfers.get(&pawn_id)
     }
 
+    // Get ids of all pawns brokered by the user
     pub fn pawns_by_broker(&self, account_id: AccountId) -> Vec<PawnId>  {
         let pawn_ids = if let Some(pawn_ids) = self.by_broker_id.get(&account_id) {
             pawn_ids
@@ -61,6 +65,7 @@ impl Contract {
             .collect()
     }
 
+    // Get ids of all offered and confirmed pawns the user has as a borrower
     pub fn pawns_by_borrower(&self, account_id: AccountId) -> Vec<PawnId>  {
         let pawn_ids = if let Some(pawn_ids) = self.by_broker_id.get(&account_id) {
             pawn_ids
@@ -73,10 +78,12 @@ impl Contract {
             .collect()
     }
 
+    // Get the offered pawn specified by id
     pub fn offered_pawn(&self, pawn_id: PawnId) -> Option<Pawn>  {
         self.offered_pawns.get(&pawn_id)
     }
 
+    // Get the confirmed pawn specified by id
     pub fn confirmed_pawn(&self, pawn_id: PawnId) -> Option<ConfirmedPawn>  {
         self.confirmed_pawns.get(&pawn_id)
     }

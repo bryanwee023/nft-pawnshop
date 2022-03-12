@@ -8,6 +8,13 @@ mod tests;
 #[near_bindgen]
 impl Contract {
 
+    /*
+        Repay a previously granted loan. 
+        Contract will transfer the repayment to the broker, and the NFT back to the borrower.
+        Prerequisites:
+            1. Deposit must cover loan value (with interest)
+            2. Signer must be the borrower / nft owner
+    */
     #[payable]
     pub fn repay_loan(&mut self, nft_contract_id: AccountId, token_id: TokenId) {
         let pawn_id = Pawn::pawn_id(&nft_contract_id, &token_id);
@@ -23,6 +30,7 @@ impl Contract {
         let broker_id = confirmed_pawn.get_broker();
         let borrower_id = confirmed_pawn.get_borrower();
 
+        // Remove pawn details from storage
         self.close_pawn(&pawn_id, broker_id, borrower_id);
 
         // Repay broker
@@ -36,6 +44,12 @@ impl Contract {
         );
     }
 
+    /*
+        Collect the nft that was used to as collateral for an unpaid overdue ConfirmedPawn.
+        Prerequisites:
+            1. Pawn must be confirmed with an unreturned loan
+            2. Pawn must be overdue
+    */
     pub fn liquidate_pawn(&mut self, nft_contract_id: AccountId, token_id: TokenId) {
         let pawn_id = Pawn::pawn_id(&nft_contract_id, &token_id);
 
@@ -47,12 +61,15 @@ impl Contract {
         let broker_id = confirmed_pawn.get_broker();
         let borrower_id = confirmed_pawn.get_borrower();
 
+        // Remove pawn details from storage
         self.close_pawn(&pawn_id, broker_id, borrower_id);
         
         // Pawn can be liquidated, transfer NFT to broker
         self.safe_transfer(&nft_contract_id, &token_id, broker_id);
     }
 
+    // Removes a given pawn (specified by id) from the contracts' persistent storage. 
+    // Only use for resolved confirmed pawns
     fn close_pawn(&mut self, pawn_id: &PawnId, broker_id: &AccountId, borrower_id: &AccountId) {
         self.confirmed_pawns.remove(pawn_id);
 

@@ -15,6 +15,7 @@ pub enum PendingTransfer {
 }
 
 impl PendingTransfer {
+    // Unwraps an incoming transfer. Panics if transfer is outgoing.
     pub fn incoming(&self, error_message: &str) -> (AccountId, u64) {
         if let PendingTransfer::Incoming{ from, approval_id } = self {
             return (from.clone(), *approval_id);
@@ -24,6 +25,7 @@ impl PendingTransfer {
         ("".to_string(), 0)
     }
 
+    // Unwraps an outgoing transfer. Panics if transfer is incoming.
     pub fn outgoing(&self, error_message: &str) -> AccountId {
         if let PendingTransfer::Outgoing{ to } = self {
             return to.clone();
@@ -51,6 +53,11 @@ trait NftTransferResolver {
 
 #[near_bindgen]
 impl NftTransferResolver for Contract {
+    /*
+        Callback utilised by offer_pawn(), after a cross-contract nft_transfer().
+        The function verifies the nft transfer has occurred, 
+        and saves the offered pawn details into its persistent storage.
+    */
     #[private]
     fn list_pawn(
         &mut self, 
@@ -97,6 +104,10 @@ impl NftTransferResolver for Contract {
         pawn
     }
 
+    /*
+        Callback utilised by safe_transfer(), after a cross-contract nft transfer.
+        The function verifies the nft transfer has occurred, and then removes the corresponding pending transfer.
+    */
     #[private]
     fn resolve_transfer(&mut self, nft_contract_id: AccountId, token_id: TokenId) {
         assert_ne!(env::promise_result(0), PromiseResult::Failed, "Failed to transfer NFT to pawnshop");
@@ -108,14 +119,26 @@ impl NftTransferResolver for Contract {
 
 #[near_bindgen]
 impl Contract {
+    /*
+        A safe way to transfer nfts without needing to worry about Promise failure.
+        The function:
+            1. Saves the transfer details as a pending outgoing transfer
+            2. Attempts to transfer the nft
+            3. As a callback, resolves the transfer by deleting the pending transfer
+
+        If any of the subsequent cross-contract calls fail (e.g. due to gas reasons), 
+        rightful recipients can still have the nft transferred to them with retry_outgoing_transfer()
+    */
     pub(crate) fn safe_transfer(&mut self, nft_contract_id: &AccountId, token_id: &TokenId, receiver_id: &AccountId) {
 
+        // Check gas early
         let gas_left = env::prepaid_gas() - env::used_gas();
         assert!(
             gas_left > GAS_FOR_TRANSFERRING_TOKEN + GAS_FOR_RESOLVING_TRANSFER, 
             "Insufficient gas to safe transfer nft"
         );
 
+        // Save the pending transfer (in case transfer fails)
         let pawn_id = Pawn::pawn_id(nft_contract_id, token_id);
         self.pending_transfers.insert(
             &pawn_id, 
@@ -146,6 +169,8 @@ impl Contract {
 
     /*
         A fallback function for users to call should safe_transfer() fail.
+        The existence of an outgoing pending transfer acts as evidence that safe_transfer previously failed.
+        If one exists, the contract will then rightfully transfer the nft to the correct receiver.
     */
     pub fn retry_outgoing_transfer(&mut self, nft_contract_id: AccountId, token_id: TokenId) {
 

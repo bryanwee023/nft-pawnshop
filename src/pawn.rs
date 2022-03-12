@@ -10,6 +10,10 @@ pub struct LoanConditions {
     pub duration: Time
 }
 
+/*
+    Represents an event where a nft owner surrenders the nft to the contract 
+    to be used collateral for a loan request.
+*/
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, PartialEq)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Pawn {
@@ -33,6 +37,9 @@ impl Pawn {
     }
 }
 
+/*
+    Represents an event where a broker grants a loan to an nft owner, where the nft is used as collateral.
+*/
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, PartialEq)]
 #[serde(crate = "near_sdk::serde")]
 pub struct ConfirmedPawn {

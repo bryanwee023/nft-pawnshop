@@ -3,7 +3,7 @@ use near_sdk::json_types::ValidAccountId;
 
 use crate::*;
 
-/// external contract calls
+// external contract calls
 
 #[ext_contract(ext_nft)]
 trait NftCore {
@@ -14,8 +14,6 @@ trait NftCore {
         approval_id: Option<u64>,
         memo: Option<String>,
     );
-
-    fn nft_token(&self, token_id: TokenId) -> Option<Token>;
 }
 
 #[ext_contract(ext_self)]

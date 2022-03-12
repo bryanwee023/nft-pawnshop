@@ -11,6 +11,10 @@ use crate::*;
 
 #[near_bindgen]
 impl NonFungibleTokenApprovalReceiver for Contract {
+    /*
+        On nft approval, contract saves the (nft owner, approval id) as a pending incoming transfer.
+        This transfer will be processed when offer_pawn() is called (by user).
+    */
     fn nft_on_approve(
         &mut self,
         token_id: TokenId,
