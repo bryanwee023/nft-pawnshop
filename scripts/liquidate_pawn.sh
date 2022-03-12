@@ -2,7 +2,7 @@
 cd "`dirname $0`"
 . ./config.sh
 
-near call $PAWNSHOP_ID repay_loan '{     
+near call $PAWNSHOP_ID liquidate_pawn '{     
     "nft_contract_id": "'$NFT_CONTRACT_ID'", 
     "token_id": "'$TOKEN_ID'"
-}' --deposit $BORROWER_REPAYMENT --accountId $BORROWER_ID --gas=$MORE_GAS
+}' --accountId $BROKER_ID --gas=$MORE_GAS

@@ -19,7 +19,11 @@ impl NonFungibleTokenApprovalReceiver for Contract {
         msg: String,
     ) -> PromiseOrValue<String> {
         let pawn_id = Pawn::pawn_id(&env::predecessor_account_id(), &token_id);
-        self.pending_transfers.insert(&pawn_id, &(owner_id, approval_id));
+        
+        self.pending_transfers.insert(
+            &pawn_id,
+            &PendingTransfer::Incoming{ from: owner_id, approval_id }
+        );
 
         PromiseOrValue::Value(String::from("Transfer request submitted"))
     }

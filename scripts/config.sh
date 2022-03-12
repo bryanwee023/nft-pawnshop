@@ -5,12 +5,12 @@ readonly PAWNSHOP_ID="dev-pawnshop.testnet"
 readonly BORROWER_ID="bryanwee.testnet"
 readonly BROKER_ID="bryanwee2.testnet"
 readonly NFT_CONTRACT_ID="nftcontract2.testnet"
-readonly TOKEN_ID="Token5"
+readonly TOKEN_ID="Token6"
 
 # Loan conditions
 readonly LOAN_VALUE_YOCTO=1000000000000000000000000 # In YoctoNEAR
 readonly INTEREST=10
-readonly DURATION=86400000000000
+readonly DURATION=86400000000000 # In nanoseconds
 
 # Payment values
 readonly BROKER_DEPOSIT="1.1" # In NEAR

@@ -11,6 +11,7 @@
         "offer-pawn": "./scripts/offer_pawn.sh",
         "withdraw-offer": "./scripts/withdraw_offer.sh",
         "accept-pawn": "./scripts/accept_pawn.sh",
-        "repay-loan": "./scripts/repay_loan.sh"
+        "repay-loan": "./scripts/repay_loan.sh",
+        "liquidate-pawn": "./scripts/liquidate_pawn.sh"
     }
 }

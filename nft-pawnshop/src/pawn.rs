@@ -10,7 +10,6 @@ pub struct LoanConditions {
     pub duration: Time
 }
 
-//struct that holds important information about each sale on the market
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, PartialEq)]
 #[serde(crate = "near_sdk::serde")]
 pub struct Pawn {
@@ -61,4 +60,3 @@ impl ConfirmedPawn {
         U128(self.get_loan_value().0 * (100 + self.get_interest()) as u128 / 100)
     }
 }
-

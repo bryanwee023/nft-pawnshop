@@ -14,11 +14,13 @@ trait NftCore {
         approval_id: Option<u64>,
         memo: Option<String>,
     );
+
+    fn nft_token(&self, token_id: TokenId) -> Option<Token>;
 }
 
 #[ext_contract(ext_self)]
 trait NftTransferResolver {
-    fn resolve_transfer(
+    fn list_pawn(
         &mut self, 
         owner_id: AccountId,
         nft_contract_id: AccountId, 
@@ -27,18 +29,9 @@ trait NftTransferResolver {
         deposit: Balance
     ) -> Pawn;
 
-    fn resolve_return(
+    fn resolve_transfer(
         &mut self, 
-        pawn_id: PawnId,
-        payment_amount: LoanInYoctoNear,
-        borrower_id: AccountId,
-        broker_id: AccountId
+        nft_contract_id: AccountId, 
+        token_id: TokenId
     );
-
-    fn resolve_collect(
-        &mut self, 
-        pawn_id: PawnId,
-        borrower_id: AccountId,
-        broker_id: AccountId
-    ) -> Pawn;
 }

@@ -5,13 +5,15 @@ use near_sdk::collections::{LookupMap, UnorderedSet};
 use near_sdk::serde::{Deserialize, Serialize};
 
 use crate::pawn::*;
+use crate::transfers::PendingTransfer;
 use crate::utils::*;
 
+mod approval_receiver;
+mod external;
 mod pawn;
 mod pawn_offer;
 mod pawn_payment;
-mod approval_receiver;
-mod external;
+mod transfers;
 mod utils;
 
 #[cfg(test)]
@@ -24,7 +26,7 @@ pub struct Contract {
     pub offered_pawns: LookupMap<PawnId, Pawn>,
     pub by_broker_id: LookupMap<AccountId, UnorderedSet<PawnId>>,
     pub by_borrower_id: LookupMap<AccountId, UnorderedSet<PawnId>>,
-    pub pending_transfers: LookupMap<AccountId, (PawnId, u64)>
+    pub pending_transfers: LookupMap<AccountId, PendingTransfer>
 }
 
 #[near_bindgen]
@@ -43,7 +45,7 @@ impl Contract {
         this
     }
 
-    pub fn pending_transfer(&self, pawn_id: PawnId) -> Option<(PawnId, u64)>  {
+    pub fn pending_transfer(&self, pawn_id: PawnId) -> Option<PendingTransfer>  {
         self.pending_transfers.get(&pawn_id)
     }
 
