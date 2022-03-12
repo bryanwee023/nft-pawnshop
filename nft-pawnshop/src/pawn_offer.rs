@@ -171,7 +171,7 @@ impl NftTransferResolver for Contract {
         loan_conditions: LoanConditions,
         deposit: Balance
     ) -> Pawn {
-        assert_ne!(env::promise_result(0), PromiseResult::Failed, "NFT failed to transfer to pawnshop");
+        assert_ne!(env::promise_result(0), PromiseResult::Failed, "Failed to transfer NFT to pawnshop");
 
         let initial_storage = env::storage_usage();
 

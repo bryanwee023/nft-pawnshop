@@ -26,4 +26,19 @@ trait NftTransferResolver {
         loan_conditions: LoanConditions,
         deposit: Balance
     ) -> Pawn;
+
+    fn resolve_return(
+        &mut self, 
+        pawn_id: PawnId,
+        payment_amount: LoanInYoctoNear,
+        borrower_id: AccountId,
+        broker_id: AccountId
+    );
+
+    fn resolve_collect(
+        &mut self, 
+        pawn_id: PawnId,
+        borrower_id: AccountId,
+        broker_id: AccountId
+    ) -> Pawn;
 }
