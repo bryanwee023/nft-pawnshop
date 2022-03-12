@@ -1,4 +1,4 @@
-use near_sdk::{Promise, Gas, Balance, PromiseOrValue, PromiseResult};
+use near_sdk::{Promise, Gas, PromiseOrValue};
 
 use crate::*;
 use crate::external::{ext_nft, ext_self};
@@ -7,10 +7,10 @@ use crate::external::{ext_nft, ext_self};
 mod tests;
 
 //TODO: Figure out these values
-const GAS_FOR_INITIATING_OFFER: Gas = 3_000_000_000_000;
+const TOTAL_GAS_FOR_OFFER: Gas = 125_000_000_000_000;
 const GAS_FOR_TRANSFERRING_TOKEN: Gas = 80_000_000_000_000;
-const GAS_FOR_RESOLVING_TRANSFER: Gas = 40_000_000_000_000;
-const GAS_FOR_INITIATING_WITHDRAWAL: Gas = 10_000_000_000_000;
+const GAS_FOR_LISTING_PAWN: Gas = 40_000_000_000_000;
+const TOTAL_GAS_FOR_WITHDRAWAL: Gas = 100_000_000_000_000;
 
 #[near_bindgen]
 impl Contract {
@@ -23,13 +23,14 @@ impl Contract {
         loan_conditions: LoanConditions
     ) -> PromiseOrValue<Pawn> {
         // Check for gas early
-        let estimated_gas = GAS_FOR_INITIATING_OFFER + GAS_FOR_TRANSFERRING_TOKEN + GAS_FOR_RESOLVING_TRANSFER;
-        assert!(env::prepaid_gas() >= estimated_gas, "Insufficient gas");
+        assert!(env::prepaid_gas() >= TOTAL_GAS_FOR_OFFER, "Insufficient gas");
 
         // TODO: Check for storage deposit early
 
         let pawn_id = Pawn::pawn_id(&nft_contract_id, &token_id);
-        let (owner_id, approval_id) = self.pending_transfers.get(&pawn_id).expect("NFT not approved");
+        let (owner_id, approval_id) = self.pending_transfers.get(&pawn_id)
+            .expect("NFT not approved")
+            .incoming("NFT not approved");
 
         assert_eq!(owner_id, env::signer_account_id(), "NFT does not belong to signer");
 
@@ -43,61 +44,38 @@ impl Contract {
             1,
             GAS_FOR_TRANSFERRING_TOKEN
         )
-        .then(ext_self::resolve_transfer(
-            owner_id,
+        .then(ext_self::list_pawn(
+            env::signer_account_id(),
             nft_contract_id, 
             token_id, 
             loan_conditions,
             env::attached_deposit(),
             &env::current_account_id(),
             0,
-            GAS_FOR_RESOLVING_TRANSFER
+            GAS_FOR_LISTING_PAWN
         ))
         .into()
     }
+
     /*
-        Withdraw a pawn offer. Pawn must not have been confirmed.\
-        Two possible cases: 
-            1. The user wishes to withdraw a processed but unconfirmed offer
-            2. The user wishes to withdraw a transferred but unprocessed offer
-        The latter is possible if the callback resolve_transfer() panicked
+        Withdraw a pawn offer.
     */
     pub fn withdraw_offer(
         &mut self,
         nft_contract_id: AccountId, 
         token_id: TokenId, 
     ) {
+        assert!(env::prepaid_gas() >= TOTAL_GAS_FOR_WITHDRAWAL, "Insufficient gas");
+
         let pawn_id = Pawn::pawn_id(&nft_contract_id, &token_id);
 
         // Attempt to remove offered pawn.
-        let pawn = self.offered_pawns.remove(&pawn_id);
+        let pawn = self.offered_pawns.remove(&pawn_id).expect("Pawn offer not found");
 
-        let receiver_id = match pawn {
-            // Case 1: Withdrawing a processed but unconfirmed nft
-            Option::Some(x) => {
-                assert_eq!(x.owner_id, env::signer_account_id(), "Only nft owner can revoke offer");
-                self.by_borrower_id.remove(&pawn_id); 
-                x.owner_id
-            },
-            // Case 2: Withdrawing a transferred but unprocessed nft
-            Option::None => {
-                assert!(self.confirmed_pawns.get(&pawn_id).is_none(), "Cannot revoke an already pawned item");
-                self.pending_transfers.get(&pawn_id).unwrap().0 
-                // TODO: Remove pawn_id from pending transfers once transfer confirmed.
-                // But what if nft_transfer fails?
-            }
-        };
-
-        // Safe to return nft to owner
-        ext_nft::nft_transfer(
-            validate(receiver_id), 
-            token_id, 
-            Option::None, 
-            Option::None, 
-            &nft_contract_id, 
-            1, 
-            env::prepaid_gas() - GAS_FOR_INITIATING_WITHDRAWAL
-        );
+        assert_eq!(pawn.owner_id, env::signer_account_id(), "Only nft owner can revoke offer");
+        self.by_borrower_id.remove(&pawn_id); 
+    
+        self.safe_transfer(&nft_contract_id, &token_id, &pawn.owner_id);
     }
 
     #[payable]
@@ -147,64 +125,4 @@ impl Contract {
         confirmed_pawn
     }
 
-}
-
-trait NftTransferResolver {
-    fn resolve_transfer(
-        &mut self, 
-        owner_id: AccountId,
-        nft_contract_id: AccountId, 
-        token_id: TokenId, 
-        loan_conditions: LoanConditions,
-        deposit: Balance
-    ) -> Pawn;
-}
-
-#[near_bindgen]
-impl NftTransferResolver for Contract {
-    #[private]
-    fn resolve_transfer(
-        &mut self, 
-        owner_id: AccountId,
-        nft_contract_id: AccountId, 
-        token_id: TokenId, 
-        loan_conditions: LoanConditions,
-        deposit: Balance
-    ) -> Pawn {
-        assert_ne!(env::promise_result(0), PromiseResult::Failed, "Failed to transfer NFT to pawnshop");
-
-        let initial_storage = env::storage_usage();
-
-        let pawn = Pawn {
-            owner_id: owner_id.clone(),
-            nft_contract_id,
-            token_id,
-            loan_conditions
-        };
-        let pawn_id = pawn.get_pawn_id();
-
-        self.pending_transfers.remove(&pawn_id);
-
-        // Add pawn to list of offered pawns
-        self.offered_pawns.insert(
-            &pawn.get_pawn_id(),
-            &pawn
-        );
-
-        // Update borrower's set of pawned tokens
-        let mut pawned_tokens = self.by_borrower_id.get(&owner_id).unwrap_or_else(|| {
-            UnorderedSet::new(
-                StorageKey::ByBorrowerIdInner {account_id_hash: hash_account_id(&owner_id)}
-            )
-        });
-
-        pawned_tokens.insert(&pawn_id);
-        self.by_borrower_id.insert(&owner_id, &pawned_tokens);
-
-        // Check that initial deposit can cover storage
-        let storage_used = (env::storage_usage() - initial_storage) as Balance;
-        assert!(deposit >= storage_used * env::STORAGE_PRICE_PER_BYTE, "Initial deposit insufficient to pay for storage");
-
-        pawn
-    }
 }
