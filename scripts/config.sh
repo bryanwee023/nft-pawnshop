@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # Near addresses
-readonly PAWNSHOP_ID="pawnshop-dev.testnet"
+readonly PAWNSHOP_ID="dev-pawnshop.testnet"
 readonly BORROWER_ID="bryanwee.testnet"
 readonly BROKER_ID="bryanwee2.testnet"
 readonly NFT_CONTRACT_ID="nftcontract2.testnet"
-readonly TOKEN_ID="Token4"
+readonly TOKEN_ID="Token5"
 
 # Loan conditions
 readonly LOAN_VALUE_YOCTO=1000000000000000000000000 # In YoctoNEAR
