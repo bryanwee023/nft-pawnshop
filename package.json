@@ -4,8 +4,7 @@
     "author": "Bryan Wee",
     "license": "UNLICENSED",
     "scripts": {
-        "build": "npm run build:pawnshop",
-        "build:pawnshop": "cd pawnshop-contract && ./build.sh && cd ..",
+        "build": "./build.sh",
         "deploy": "npm run build && near deploy --wasmFile out/main.wasm --accountId $PAWNSHOP_ID && near call $PAWNSHOP_ID new --account_id $PAWNSHOP_ID",
         "dev-deploy": "npm run build && near deploy --wasmFile out/main.wasm --accountId $PAWNSHOP_ID && near call $PAWNSHOP_ID new --account_id $PAWNSHOP_ID"
     }

@@ -35,7 +35,7 @@ impl Contract {
 
         // Initiate cross-contract call
         ext_nft::nft_transfer(
-            env::current_account_id().try_into().unwrap(), 
+            validate(env::current_account_id()), 
             token_id.clone(), 
             Option::Some(approval_id), 
             Option::None,
@@ -90,7 +90,7 @@ impl Contract {
 
         // Safe to return nft to owner
         ext_nft::nft_transfer(
-            receiver_id.try_into().unwrap(), 
+            validate(receiver_id), 
             token_id, 
             Option::None, 
             Option::None, 
