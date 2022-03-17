@@ -55,7 +55,7 @@ First, let's try to list an nft as a collateral for a loan by:
 
 :bulb: To mint NFTs for manual testing purposes, we can run `scripts/nft/mint.sh`.
 
-To learn how to accept pawn offers, repay loans, and collect collateral, read the documentation (TBD)
+To see how to accept pawn offers, repay loans, and collect collateral, read the documentation
      
 Troubleshooting
 ===========

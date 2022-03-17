@@ -40,11 +40,11 @@ The repository has several yarn scripts one can run to interact with the deploye
 
 | Command | Description |
 | ------------- | ------------- |
-| `yarn offer_pawn`  | Borrower lists a pawn offer with specified nft and loan conditions |
-| `yarn withdraw_offer`  | Borrower withdraws the listed pawn offer  |
-| `yarn accept_pawn `  | Broker accepts the listed pawn offer |
-| `yarn repay_loan`  | Borrower repays the loan and recollects nft  |
-| `yarn liquidate_pawn`  | Broker liquidates the pawn  |
+| `yarn offer-pawn`  | Borrower lists a pawn offer with specified nft and loan conditions |
+| `yarn withdraw-offer`  | Borrower withdraws the listed pawn offer  |
+| `yarn accept-pawn `  | Broker accepts the listed pawn offer |
+| `yarn repay-loan`  | Borrower repays the loan and recollects nft  |
+| `yarn liquidate-pawn`  | Broker liquidates the pawn  |
 
 All scripts can have their parameters modified via `scripts/config.sh`
 
